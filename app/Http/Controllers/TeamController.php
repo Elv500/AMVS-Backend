@@ -7,71 +7,62 @@ use Illuminate\Http\Request;
 
 class TeamController extends Controller
 {
-
     public function index()
     {
-        //Retorna todos los equipos de la tabla 'teams'
-        return Team::all();
-    }
-
-    public function create()
-    {
-        //
+        return response()->json(Team::all(), 200);
     }
 
     public function store(Request $request)
     {
-        // Validar los datos de entrada
-        $request->validate([
-            'name' => 'required|string|max:10',
-            'coach' => 'nullable|string|max:10',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'coach_id' => 'nullable|exists:coaches,id', // Asegura que el coach_id exista
         ]);
 
-        //Crear el equipo y guardarlo en la base de datos
-        $team = Team::create($request->all());
+        $team = Team::create($validated);
 
-        //Retorna el equipo creado con un codigo de respuesta 201(creado)
-        return response()->json($team,201);
+        return response()->json($team, 201);
     }
+
 
     public function show($id)
     {
-        //Encuentra el equipo por su ID o lanza un error si no existe
-        return Team::findOrFail($id);
-    }
+        $team = Team::find($id);
 
-    public function edit($id)
-    {
-        //
+        if (!$team) {
+            return response()->json(['message' => 'Team not found'], 404);
+        }
+
+        return response()->json($team, 200);
     }
 
     public function update(Request $request, $id)
     {
-        //Validar los datos de entrada
-        $request->validate([
-            'name' => 'required|string|max:10',
-            'coach' => 'nullable|string|max:10'
+        $team = Team::find($id);
+
+        if (!$team) {
+            return response()->json(['message' => 'Team not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
         ]);
 
-        //Encuentra el equipo por su ID o lanza un error 404 si no existe
-        $team = Team::findOrFail($id);
+        $team->update($validated);
 
-        //Actualizar los datos del equipo
-        $team->update($request->all());
-
-        //Retorna el equipo actualizado
-        return response()->json($team);
+        return response()->json($team, 200);
     }
 
     public function destroy($id)
     {
-        //Encuentra el equipo por su ID o lanza un error 404 si no existe
-        $team = Team::findOrFail($id);
+        $team = Team::find($id);
 
-        //Eliminar el equipo
+        if (!$team) {
+            return response()->json(['message' => 'Team not found'], 404);
+        }
+
         $team->delete();
 
-        //Retornar una respuesta de éxito sin contenido
-        return response()->json(null,204);
+        return response()->json(['message' => 'Team deleted'], 200);
     }
 }

@@ -9,6 +9,12 @@ class Team extends Model
 {
     use HasFactory;
 
-    //Permite asignación masiva en los campos 'name' y 'coach'
-    protected $fillable = ['name', 'coach'];
+    // Campos asignables en masa
+    protected $fillable = ['name', 'coach_id'];
+
+    // Relación con el modelo Coach
+    public function coach()
+    {
+        return $this->belongsTo(Coach::class);
+    }
 }
