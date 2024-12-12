@@ -17,4 +17,11 @@ class Team extends Model
     {
         return $this->belongsTo(Coach::class);
     }
+    
+    //Relacion con el modelo Player
+    public function players()
+    {
+        return $this->hasMany(Player::class);
+    }
+
 }

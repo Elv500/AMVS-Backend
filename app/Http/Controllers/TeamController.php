@@ -9,7 +9,7 @@ class TeamController extends Controller
 {
     public function index()
     {
-        return response()->json(Team::all(), 200);
+        return response()->json(Team::with(['coach', 'players'])->get(), 200);
     }
 
     public function store(Request $request)
@@ -46,6 +46,7 @@ class TeamController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'coach_id' => 'nullable|exists:coaches,id', // Asegura que coach_id exista o sea null
         ]);
 
         $team->update($validated);
