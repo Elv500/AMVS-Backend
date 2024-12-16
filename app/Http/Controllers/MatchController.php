@@ -79,7 +79,7 @@ class MatchController extends Controller
 
     public function updateState(Request $request, $id)
     {
-        $match = Match::find($id);
+        $match = Match::with(['localTeam', 'visitorTeam'])->find($id);
 
         if (!$match) {
             return response()->json(['message' => 'Match not found'], 404);
@@ -89,7 +89,37 @@ class MatchController extends Controller
             'state' => 'required|string|in:Pendiente,En curso,Concluido',
         ]);
 
-        $match->update(['state' => $validated['state']]);
+        if ($validated['state'] === 'Concluido') {
+            // Verificar que los sets estén registrados
+            if (empty($match->sets)) {
+                return response()->json(['message' => 'Cannot conclude a match without sets'], 422);
+            }
+
+            // Calcular sets ganados
+            $localSets = 0;
+            $visitorSets = 0;
+
+            foreach ($match->sets as $set) {
+                if ($set['local_points'] > $set['visitor_points']) {
+                    $localSets++;
+                } else {
+                    $visitorSets++;
+                }
+            }
+
+            // Determinar ganador
+            $winnerTeamId = $localSets > $visitorSets ? $match->local_team_id : $match->visitor_team_id;
+            $match->winner_team_id = $winnerTeamId;
+
+            // Actualizar tabla de posiciones
+            $this->updateLeaderboard($match->localTeam, $match->visitorTeam, $winnerTeamId);
+
+            $match->state = 'Concluido';
+            $match->save();
+        } else {
+            $match->state = $validated['state'];
+            $match->save();
+        }
 
         return response()->json(['message' => 'State updated', 'match' => $match], 200);
     }
@@ -206,5 +236,29 @@ class MatchController extends Controller
         }
 
         return response()->json(['message' => 'Schedule generated successfully', 'matches' => $matches], 201);
+    }
+
+    //Actualizar la tabla de posiciones
+    private function updateLeaderboard($localTeam, $visitorTeam, $winnerTeamId)
+    {
+        // Actualizar estadísticas del equipo local
+        $localTeam->increment('matches_played');
+        if ($localTeam->id === $winnerTeamId) {
+            $localTeam->increment('matches_won');
+            $localTeam->increment('points', 3);
+        } else {
+            $localTeam->increment('matches_lost');
+            $localTeam->increment('points', 1);
+        }
+
+        // Actualizar estadísticas del equipo visitante
+        $visitorTeam->increment('matches_played');
+        if ($visitorTeam->id === $winnerTeamId) {
+            $visitorTeam->increment('matches_won');
+            $visitorTeam->increment('points', 3);
+        } else {
+            $visitorTeam->increment('matches_lost');
+            $visitorTeam->increment('points', 1);
+        }
     }
 }

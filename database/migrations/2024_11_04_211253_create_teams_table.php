@@ -16,6 +16,13 @@ class CreateTeamsTable extends Migration
         Schema::create('teams', function (Blueprint $table) {
             $table->id();
             $table->string('name'); // Nombre del equipo
+
+            // Agregar campos de estadísticas
+            $table->integer('matches_played')->default(0);
+            $table->integer('matches_won')->default(0);
+            $table->integer('matches_lost')->default(0);
+            $table->integer('points')->default(0);
+
             $table->timestamps(); // Timestamps para created_at y updated_at
         });
     }
@@ -27,6 +34,6 @@ class CreateTeamsTable extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('teams');
     }
 }

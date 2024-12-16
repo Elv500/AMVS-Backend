@@ -9,7 +9,7 @@ class Match extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['local_team_id', 'visitor_team_id', 'field_id', 'date', 'time', 'state', 'sets', 'tournament_id'];
+    protected $fillable = ['local_team_id', 'visitor_team_id', 'field_id', 'date', 'time', 'state', 'sets', 'tournament_id', 'winner_team_id'];
 
     protected $casts = [
         'sets' => 'array', // Cast para que 'sets' siempre sea un arreglo
@@ -33,5 +33,10 @@ class Match extends Model
     public function tournament()
     {
         return $this->belongsTo(Tournament::class);
+    }
+
+    public function winnerTeam()
+    {
+        return $this->belongsTo(Team::class, 'winner_team_id');
     }
 }

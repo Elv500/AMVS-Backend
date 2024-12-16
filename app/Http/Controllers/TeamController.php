@@ -66,4 +66,17 @@ class TeamController extends Controller
 
         return response()->json(['message' => 'Team deleted'], 200);
     }
+
+    public function leaderboard()
+    {
+        $teams = Team::orderBy('points', 'desc')
+            ->orderBy('matches_won', 'desc')
+            ->get(['name', 'matches_played', 'matches_won', 'matches_lost', 'points']);
+
+        if ($teams->isEmpty()) {
+            return response()->json(['leaderboard' => []], 200);
+        }
+
+        return response()->json(['leaderboard' => $teams], 200);
+    }
 }
