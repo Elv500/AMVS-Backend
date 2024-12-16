@@ -50,23 +50,35 @@ class NewsController extends Controller
             return response()->json(['message' => 'News not found'], 404);
         }
 
+        // Validar los campos
         $validated = $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'content' => 'sometimes|required|string',
-            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048', // Archivo opcional
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048', // Adjuntos opcionales
         ]);
 
+        // Actualizar título y contenido
+        $news->title = $validated['title'];
+        $news->content = $validated['content'];
+
+        // Verificar si hay un nuevo archivo adjunto
         if ($request->hasFile('attachment')) {
-            // Eliminar el archivo anterior si existe
+            // Eliminar archivo antiguo si existe
             if ($news->attachment) {
-                Storage::delete(str_replace('storage/', 'public/', $news->attachment));
+                $oldFilePath = str_replace('storage/', 'public/', $news->attachment);
+                if (Storage::exists($oldFilePath)) {
+                    Storage::delete($oldFilePath);
+                }
             }
 
-            $filePath = $request->file('attachment')->store('public/news');
-            $validated['attachment'] = str_replace('public/', 'storage/', $filePath);
+            // Subir y guardar el nuevo archivo
+            $filePath = $request->file('attachment')->store('news', 'public');
+            $news->attachment = 'storage/' . $filePath; // Ruta pública
         }
 
-        $news->update($validated);
+        // Guardar cambios
+        $news->save();
+
         return response()->json($news, 200);
     }
 
