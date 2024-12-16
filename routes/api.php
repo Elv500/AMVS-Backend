@@ -8,6 +8,8 @@ use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\FieldController;
 use App\Http\Controllers\MatchController;
 use App\Http\Controllers\TournamentController;
+use App\Http\Controllers\NewsController;
+
 
 // Ruta protegida con autenticación, no afecta las rutas de equipos
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -53,3 +55,5 @@ Route::post('matches/generate', [MatchController::class, 'generateSchedule']);
 //Ruta de torneos
 Route::apiResource('tournaments', TournamentController::class);
 
+//Rutas de noticias
+Route::apiResource('news', NewsController::class);
