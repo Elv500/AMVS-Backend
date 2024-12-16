@@ -153,7 +153,6 @@ class MatchController extends Controller
             'start_date' => 'required|date',
             'interval_minutes' => 'required|integer|min:30',
         ]);
-        dd($validated);
 
         $tournament = Tournament::find($validated['tournament_id']);
         $teams = Team::all();
