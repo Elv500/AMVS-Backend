@@ -31,12 +31,13 @@ class TeamController extends Controller
 
     public function show($id)
     {
-        $team = Team::find($id);
-
+        // Buscar el equipo con las relaciones coach y players
+        $team = Team::with(['coach', 'players'])->find($id);
+    
         if (!$team) {
             return response()->json(['message' => 'Team not found'], 404);
         }
-
+    
         return response()->json($team, 200);
     }
 
