@@ -16,14 +16,18 @@ class TeamController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'coach_id' => 'nullable|exists:coaches,id', // Asegura que el coach_id exista
+            'coach_id' => 'nullable|exists:coaches,id',
+            'logo' => 'nullable|image|max:2048', // Validar la imagen (hasta 2MB)
         ]);
+
+        if ($request->hasFile('logo')) {
+            $validated['logo'] = $request->file('logo')->store('logos', 'public');
+        }
 
         $team = Team::create($validated);
 
         return response()->json($team, 201);
     }
-
 
     public function show($id)
     {
@@ -44,12 +48,36 @@ class TeamController extends Controller
             return response()->json(['message' => 'Team not found'], 404);
         }
 
+        // Validar los campos
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'coach_id' => 'nullable|exists:coaches,id', // Asegura que coach_id exista o sea null
+            'coach_id' => 'nullable|exists:coaches,id',
+            'logo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048', // Validación de logo
         ]);
 
-        $team->update($validated);
+        // Actualizar el nombre y coach_id
+        $team->name = $validated['name'];
+        if (isset($validated['coach_id'])) {
+            $team->coach_id = $validated['coach_id'];
+        }
+
+        // Verificar si se subió un nuevo logo
+        if ($request->hasFile('logo')) {
+            // Eliminar el logo anterior si existe
+            if ($team->logo) {
+                $oldLogoPath = str_replace('storage/', 'public/', $team->logo);
+                if (\Storage::exists($oldLogoPath)) {
+                    \Storage::delete($oldLogoPath);
+                }
+            }
+
+            // Subir y guardar el nuevo logo
+            $filePath = $request->file('logo')->store('logos', 'public');
+            $team->logo = 'storage/' . $filePath; // Guardar la ruta pública
+        }
+
+        // Guardar los cambios
+        $team->save();
 
         return response()->json($team, 200);
     }
@@ -62,9 +90,15 @@ class TeamController extends Controller
             return response()->json(['message' => 'Team not found'], 404);
         }
 
+        // Eliminar el archivo del logo si existe
+        if ($team->logo && \Storage::disk('public')->exists($team->logo)) {
+            \Storage::disk('public')->delete($team->logo);
+        }
+
+        // Eliminar el equipo de la base de datos
         $team->delete();
 
-        return response()->json(['message' => 'Team deleted'], 200);
+        return response()->json(['message' => 'Team deleted successfully'], 200);
     }
 
     public function leaderboard()

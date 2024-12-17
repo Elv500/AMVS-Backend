@@ -10,7 +10,7 @@ class Team extends Model
     use HasFactory;
 
     // Campos asignables en masa
-    protected $fillable = ['name', 'coach_id', 'matches_played', 'matches_won', 'matches_lost', 'points'];
+    protected $fillable = ['name', 'coach_id', 'matches_played', 'matches_won', 'matches_lost', 'points', 'logo'];
 
     // Relación con el modelo Coach
     public function coach()
