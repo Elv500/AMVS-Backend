@@ -59,7 +59,9 @@ class TeamController extends Controller
         // Actualizar el nombre y coach_id
         $team->name = $validated['name'];
         if (isset($validated['coach_id'])) {
-            $team->coach_id = $validated['coach_id'];
+            $team->coach_id = $validated['coach_id']; // Asignar entrenador
+        } else {
+            $team->coach_id = null; // Permitir desasignar entrenador
         }
 
         // Verificar si se subió un nuevo logo
@@ -74,13 +76,13 @@ class TeamController extends Controller
 
             // Subir y guardar el nuevo logo
             $filePath = $request->file('logo')->store('logos', 'public');
-            $team->logo = 'storage/' . $filePath; // Guardar la ruta pública
+            $team->logo = $filePath;
         }
 
-        // Guardar los cambios
         $team->save();
 
-        return response()->json($team, 200);
+        // Devolver el equipo con sus relaciones actualizadas
+        return response()->json($team->load(['coach', 'players']), 200);
     }
 
     public function destroy($id)

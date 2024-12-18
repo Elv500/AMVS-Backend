@@ -29,7 +29,8 @@ class CoachController extends Controller
 
     public function show($id)
     {
-        $coach = Coach::find($id);
+        // Buscar el entrenador con sus equipos asociados
+        $coach = Coach::with('teams')->find($id);
 
         if (!$coach) {
             return response()->json(['message' => 'Coach not found'], 404);
