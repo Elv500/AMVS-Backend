@@ -24,4 +24,9 @@ class Team extends Model
         return $this->hasMany(Player::class);
     }
 
+    public function matches()
+    {
+        return $this->hasMany(Match::class, 'local_team_id')
+                    ->orWhere('visitor_team_id', $this->id);
+    }
 }

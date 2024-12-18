@@ -19,6 +19,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 //Tabla de posiciones
 Route::get('/teams/leaderboard', [TeamController::class, 'leaderboard']);
+Route::get('/teams/leaderboard/tournament/{id}', [TeamController::class, 'leaderboardByTournament']);
 
 Route::apiResource('teams', TeamController::class);
 Route::apiResource('coaches', CoachController::class);

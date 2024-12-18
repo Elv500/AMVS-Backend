@@ -105,10 +105,42 @@ class TeamController extends Controller
     }
 
     public function leaderboard()
+{
+    $teams = Team::with('coach') // Incluye la relación del entrenador
+        ->orderBy('points', 'desc')
+        ->orderBy('matches_won', 'desc')
+        ->get(['id', 'name', 'matches_played', 'matches_won', 'matches_lost', 'points', 'logo', 'coach_id']);
+
+    if ($teams->isEmpty()) {
+        return response()->json(['leaderboard' => []], 200);
+    }
+
+    // Formatear para incluir solo lo necesario del entrenador
+    $formattedTeams = $teams->map(function ($team) {
+        return [
+            'id' => $team->id,
+            'name' => $team->name,
+            'matches_played' => $team->matches_played,
+            'matches_won' => $team->matches_won,
+            'matches_lost' => $team->matches_lost,
+            'points' => $team->points,
+            'logo' => $team->logo,
+            'coach' => $team->coach ? ['id' => $team->coach->id, 'name' => $team->coach->name] : null,
+        ];
+        });
+        return response()->json(['leaderboard' => $formattedTeams], 200);
+    }
+
+    //Filtrar tabla por ID de torneo
+    public function leaderboardByTournament($tournamentId)
     {
-        $teams = Team::orderBy('points', 'desc')
+        $teams = Team::whereHas('matches', function ($query) use ($tournamentId) {
+                $query->where('tournament_id', $tournamentId);
+            })
+            ->with(['coach'])
+            ->orderBy('points', 'desc')
             ->orderBy('matches_won', 'desc')
-            ->get(['name', 'matches_played', 'matches_won', 'matches_lost', 'points']);
+            ->get(['id', 'name', 'matches_played', 'matches_won', 'matches_lost', 'points', 'logo', 'coach_id']);
 
         if ($teams->isEmpty()) {
             return response()->json(['leaderboard' => []], 200);
