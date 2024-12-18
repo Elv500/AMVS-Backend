@@ -261,4 +261,15 @@ class MatchController extends Controller
             $visitorTeam->increment('points', 1);
         }
     }
+
+    //Buscar partidos por ID de torneo
+    public function getMatchesByTournament($id)
+    {
+        // Buscar los partidos relacionados con el ID del torneo
+        $matches = Match::with(['localTeam', 'visitorTeam', 'field', 'tournament'])
+            ->where('tournament_id', $id)
+            ->get();
+
+        return response()->json($matches, 200);
+    }
 }

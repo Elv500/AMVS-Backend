@@ -45,6 +45,8 @@ Route::get('matches/{id}', [MatchController::class, 'show']);
 Route::put('matches/{id}', [MatchController::class, 'update']);
 Route::delete('matches/{id}', [MatchController::class, 'destroy']);
 
+Route::get('/matches/tournament/{id}', [MatchController::class, 'getMatchesByTournament']);
+
 //Rutas estado de los partidos
 Route::put('matches/{id}/state', [MatchController::class, 'updateState']);
 Route::put('matches/{id}/sets', [MatchController::class, 'updateSets']);
